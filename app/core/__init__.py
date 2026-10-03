@@ -1,0 +1,1 @@
+"""Camada central: configurações, segurança e dependências da API."""

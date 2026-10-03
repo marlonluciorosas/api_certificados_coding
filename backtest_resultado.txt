@@ -1,0 +1,98 @@
+Backtest da API em http://127.0.0.1:8000
+
+== 1. Rotas de apresentação e saúde do sistema ==
+  [OK]    GET /health responde 200
+  [OK]    status é 'ok'
+  [OK]    GET / responde 200
+  [OK]    GET /sobre responde 200
+  [OK]    catálogo tem as 10 regras de negócio
+  [OK]    catálogo lista as regras de segurança
+
+== 2. Login com e-mail e senha ==
+  [OK]    login do administrador devolve token
+  [OK]    login do professor devolve token
+  [OK]    login do aluno devolve token
+  [OK]    senha errada responde 401
+  [OK]    GET /auth/me responde 200
+  [OK]    o token identifica o perfil do aluno
+  [OK]    a senha não aparece na resposta
+
+== 3. Dados de exemplo no banco ==
+  [OK]    existem pelo menos 20 usuários
+  [OK]    existem pelo menos 4 cursos
+  [OK]    existem pelo menos 10 eventos
+  [OK]    algum evento já terminou (histórico para o certificado)
+  [OK]    algum evento ainda vai acontecer
+  [OK]    o evento traz o nome do curso
+  [OK]    a listagem de eventos é paginada
+  [OK]    a busca encontra eventos pelo título
+  [OK]    o filtro de futuros não traz evento finalizado
+  [OK]    o dashboard do aluno responde 200
+  [OK]    o dashboard identifica o usuário logado
+  [OK]    listar usuários sem login responde 401
+
+== 4. Cadastro de cursos ==
+  [OK]    professor cadastra curso
+  [OK]    a sigla é gravada em maiúsculas
+  [OK]    sigla repetida responde 409
+  [OK]    aluno não cadastra curso (403)
+
+== 5. Cadastro de usuários e validações de senha ==
+  [OK]    cadastro de usuário responde 201
+  [OK]    o curso do usuário vem na resposta
+  [OK]    o usuário novo consegue fazer login
+  [OK]    e-mail repetido responde 409 (RN08)
+  [OK]    senha sem número responde 422
+
+== 6. Cadastro de eventos ==
+  [OK]    professor cadastra evento
+  [OK]    o evento calcula as vagas disponíveis
+  [OK]    evento com data passada responde 400 (RN05)
+  [OK]    carga horária zero responde 422 (RN09)
+  [OK]    curso inexistente responde 400
+  [OK]    aluno não cadastra evento (403)
+
+== 7. Inscrições (RN01 e RN02) ==
+  [OK]    aluno se inscreve no evento
+  [OK]    inscrição duplicada responde 409 (RN01)
+  [OK]    aluno não inscreve outra pessoa (403 - RN04)
+  [OK]    primeira inscrição na última vaga é aceita
+  [OK]    inscrição sem vaga responde 409 (RN02)
+
+== 8. Cancelamento (RN04 e RN10) ==
+  [OK]    cancelar com menos de 24h responde 400 (RN10)
+  [OK]    cancelar com antecedência responde 200
+  [OK]    situação da inscrição vira 'cancelada'
+  [OK]    cancelar duas vezes responde 409
+  [OK]    cancelar inscrição de outro aluno responde 403 (RN04)
+  [OK]    a vaga volta a ficar disponível depois do cancelamento
+
+== 9. Presença e certificado (RN06) ==
+  [OK]    existe evento finalizado com inscritos
+  [OK]    evento finalizado tem presenças confirmadas
+  [OK]    administrador emite o certificado
+  [OK]    o certificado traz a carga horária do evento
+  [OK]    o certificado tem identificador CERT-
+  [OK]    certificado sem presença responde 400 (RN06)
+  [OK]    o dono da inscrição também consegue emitir
+
+== 10. Permissões e exclusões (RN03, RN07 e RC01) ==
+  [OK]    professor de outro evento não edita (403)
+  [OK]    aluno não exclui evento (403)
+  [OK]    excluir evento com inscrição ativa responde 409 (RC01)
+  [OK]    responsável exclui a inscrição (204)
+  [OK]    depois disso o evento é excluído (204)
+  [OK]    o evento excluído não é mais encontrado (404)
+  [OK]    evento finalizado não muda local (409 - RN07)
+  [OK]    evento finalizado aceita ajuste de descrição
+
+== 11. Privacidade das inscrições (RS04) ==
+  [OK]    aluno vê apenas as próprias inscrições
+  [OK]    aluno não consulta inscrição de outro (403)
+  [OK]    administrador vê todas as inscrições
+  [OK]    token adulterado responde 401
+  [OK]    inscrição sem identificação responde 401
+
+==================================================================
+BACKTEST CONCLUÍDO: 71/71 verificações aprovadas
+==================================================================
