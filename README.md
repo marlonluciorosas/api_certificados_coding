@@ -1,6 +1,6 @@
 # Projeto - Sistema de Gestão de Eventos Acadêmicos 
 
-**Aluno:** Victor Ricardo Batista de Araújo
+**Aluno:** Victor Ricardo, Júlio César Ferreira, Marlon Lúcio, Lucas Gabriel, Rhyan Albuquerque, Rayanne França
 **Curso:** Análise e Desenvolvimento de Sistemas (ADS)
 **Versão:** 2.0.0 (projeto reorganizado em camadas, com login e cursos)
 
@@ -39,7 +39,7 @@ O `executar.py` cria o ambiente virtual (`.venv`), instala as dependências e, n
 primeira execução, **já cria o banco com os dados de exemplo**. Para parar o
 servidor, pressione `Ctrl+C`. Na primeira vez é preciso estar com internet.
 
-### Execução manual (se preferir)
+### Execução manual 
 
 ```bash
 python3 -m venv .venv
