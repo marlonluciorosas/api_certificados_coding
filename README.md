@@ -1,4 +1,4 @@
-# Atividade de Victor lalala
+# Projeto - Sistema de Gestão de Eventos Acadêmicos 
 
 **Aluno:** Victor Ricardo Batista de Araújo
 **Curso:** Análise e Desenvolvimento de Sistemas (ADS)
