@@ -293,7 +293,7 @@ python popular_banco.py --recriar
 
 ---
 
-## Problemas comuns
+## Problemas
 
 | Situação | O que fazer |
 |---|---|
