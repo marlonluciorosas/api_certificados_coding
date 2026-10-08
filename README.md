@@ -1,6 +1,7 @@
 # Projeto - Sistema de Gestão de Eventos Acadêmicos 
 
 **Aluno:** Victor Ricardo, Júlio César Ferreira, Marlon Lúcio, Lucas Gabriel, Rhyan Albuquerque, Rayanne França
+
 **Curso:** Análise e Desenvolvimento de Sistemas (ADS)
 **Versão:** 2.0.0 (projeto reorganizado em camadas, com login e cursos)
 
