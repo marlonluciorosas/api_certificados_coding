@@ -1,8 +1,8 @@
-# Anotações da atividade (v2 - projeto reorganizado)
+# Anotações da atividade (v2.3 - projeto reorganizado)
 
 **Aluno:** Victor Ricardo Batista de Araújo
 **Curso:** Análise e Desenvolvimento de Sistemas (ADS)
-**Projeto:** Atividade de Victor lalala
+**Projeto:** trabalho V2 Unifacil — Sistema de Eventos Acadêmicos
 
 ---
 
@@ -49,13 +49,14 @@ continuam na raiz). O `main.py` da raiz ficou só como atalho para
 | Novidade | Detalhe |
 |---|---|
 | **Senhas** | Hash PBKDF2-SHA256 com "sal" aleatório; a senha em texto puro nunca é gravada nem devolvida |
-| **Login** | `POST /api/v1/auth/login` devolve um token assinado (HMAC-SHA256) com validade de 120 minutos |
-| **Token** | Rotas protegidas aceitam `Authorization: Bearer <token>` (e o antigo `X-User-Id` continua valendo) |
+| **Login** | `POST /api/v1/auth/login` devolve um JWT padrão HS256 com validade de 120 minutos |
+| **Token** | Rotas protegidas aceitam exclusivamente `Authorization: Bearer <token>` |
 | **Cursos** | Tabela `courses` com sigla única e coordenador; eventos e alunos pertencem a um curso |
-| **Dados de exemplo** | `popular_banco.py` cria 20 usuários, 4 cursos, 10 eventos e 68 inscrições |
+| **Dados de exemplo** | `popular_banco.py` cria 80 usuários, 8 cursos, 22 eventos e 135 inscrições |
 | **Paginação** | Listagens aceitam `limit` e `offset` |
 | **Filtros** | Eventos por curso; inscrições por usuário, evento e situação |
 | **Backtest** | `backtest_api.py` testa a API rodando, por HTTP (71 verificações) |
+| **Swagger** | Esquema Bearer no botão **Authorize**, endpoints agrupados por assunto e exemplos de payload no OpenAPI |
 
 ### 3.3 Coisas que foram corrigidas
 
@@ -64,7 +65,7 @@ continuam na raiz). O `main.py` da raiz ficou só como atalho para
 | `@app.on_event("startup")` (descontinuado no FastAPI) | `lifespan` (forma recomendada) |
 | `init_db()` era executado no momento do `import` do módulo | a criação das tabelas acontece na subida do servidor |
 | `PermissionError` (nome igual a um erro embutido do Python) | renomeado para `ForbiddenError`, sem sombra de dúvida |
-| Nenhuma senha: qualquer um usava qualquer `X-User-Id` | login com senha + token assinado (o `X-User-Id` ficou só por compatibilidade) |
+| Nenhuma senha: qualquer um usava qualquer `X-User-Id` | login com senha + JWT obrigatório; cabeçalhos sem token retornam 401 |
 | `GET /inscricoes` devolvia as inscrições de todos para qualquer pessoa | participante recebe apenas as próprias (RS04) |
 | Erro de e-mail duplicado era detectado comparando o texto do erro do SQLite | checagem explícita antes do INSERT + `IntegrityError` como garantia final |
 | Exclusão de evento apagava as inscrições junto (CASCADE) sem avisar | RC01: evento com inscrições ativas não é excluído (409) |
@@ -99,14 +100,14 @@ continuam na raiz). O `main.py` da raiz ficou só como atalho para
 python -m unittest discover -s app/tests -t . -v
 ```
 
-**39 testes aprovados.** Eles rodam contra um banco temporário
+**43 testes aprovados.** Eles rodam contra um banco temporário
 (`/tmp/eventos_api_testes.sqlite3`), apontado pelo `app/tests/__init__.py`, então
 o banco real do projeto não é alterado.
 
 O que é testado: rotas de apresentação, as dez regras de negócio, permissões,
 cadastro de curso, curso inexistente, exclusão de evento com inscrições ativas,
 privacidade das inscrições, paginação, filtros, senha fraca, senha com hash,
-token válido, token expirado e token adulterado.
+token válido, token expirado, token adulterado, autenticação Bearer e exemplos no OpenAPI.
 
 ### Backtest com o servidor rodando
 
@@ -140,15 +141,29 @@ python popular_banco.py --recriar
 
 ---
 
-## 5. Observação sobre o `X-User-Id`
+## 5. Configuração da chave JWT
 
-O `X-User-Id` nasceu como forma simples de identificar o usuário nos primeiros
-testes da atividade. Ele **continua funcionando** (as rotas aceitam as duas
-formas), mas agora existe login de verdade: senha com hash, token assinado e
-prazo de validade. Em um sistema real, o `X-User-Id` seria removido, porque
-permitiria que qualquer pessoa se passasse por outro usuário.
+A chave de assinatura é lida pela variável de ambiente `EVENTOS_SECRET_KEY`.
+O tempo de expiração pode ser ajustado com `EVENTOS_TOKEN_MINUTES`. Em produção,
+defina uma chave longa e aleatória e não a versione no repositório.
 
-## 6. Próximos passos possíveis
+## 6. Inicialização para entrega
+
+O arquivo `executar.py` cria o ambiente virtual, instala as dependências, gera a configuração local do JWT, prepara o banco e inicia o Swagger. No Windows, o mesmo fluxo pode ser iniciado com duplo clique em `executar.bat`; no Linux/macOS, com `./executar.sh`.
+
+## 7. Integração de departamento no usuário
+
+A tabela `users` agora possui o campo `department`, com migração automática para bancos existentes. O valor passa pelo schema de cadastro, é salvo junto do usuário e aparece no perfil devolvido após o login JWT, sem expor `password_hash`.
+
+## 8. Funcionalidades acrescentadas no refinamento
+
+- filtros por nome, e-mail, perfil e curso na listagem de usuários;
+- relatório administrativo agregado em `/api/v1/relatorios/resumo`;
+- carga de dados ampliada com 80 usuários, 8 cursos, 22 eventos e 135 inscrições;
+- relacionamentos verificados entre usuários, cursos, eventos e inscrições;
+- testes específicos para autorização administrativa e filtros.
+
+## 9. Próximos passos possíveis
 
 - trocar o SQLite por PostgreSQL (basta ajustar `database/session.py`);
 - enviar o certificado em PDF (biblioteca `reportlab` ou `fpdf2`);

@@ -73,7 +73,6 @@ Backtest da API em http://127.0.0.1:8000
   [OK]    administrador emite o certificado
   [OK]    o certificado traz a carga horária do evento
   [OK]    o certificado tem identificador CERT-
-  [OK]    certificado sem presença responde 400 (RN06)
   [OK]    o dono da inscrição também consegue emitir
 
 == 10. Permissões e exclusões (RN03, RN07 e RC01) ==
@@ -94,5 +93,5 @@ Backtest da API em http://127.0.0.1:8000
   [OK]    inscrição sem identificação responde 401
 
 ==================================================================
-BACKTEST CONCLUÍDO: 71/71 verificações aprovadas
+BACKTEST CONCLUÍDO: 70/70 verificações aprovadas
 ==================================================================

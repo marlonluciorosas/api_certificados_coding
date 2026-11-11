@@ -1,33 +1,38 @@
-# Projeto - Sistema de Gestão de Eventos Acadêmicos 
+# trabalho V2 Unifacil
 
-**Aluno:** Victor Ricardo, Júlio César Ferreira, Marlon Lúcio, Lucas Gabriel, Rhyan Albuquerque, Rayanne França
+**Projeto:** Sistema de Eventos Acadêmicos
 
+**Aluno:** Victor Ricardo Batista de Araújo
 **Curso:** Análise e Desenvolvimento de Sistemas (ADS)
-**Versão:** 2.0.0 (projeto reorganizado em camadas, com login e cursos)
+**Versão:** 2.4.0 (Swagger com autenticação e exemplos de requisição)
 
 ---
 
 ## Sobre o projeto
 
 API em FastAPI para gerenciar **usuários**, **cursos**, **eventos**, **inscrições**,
-**presença** e **certificados**. O banco é o SQLite (arquivo `eventos.db`, criado
+**presença**, **certificados** e relatórios administrativos. O banco é o SQLite (arquivo `eventos.db`, criado
 automaticamente) e não precisa instalar servidor de banco.
 
-Nesta versão o projeto foi reorganizado em camadas, ganhou **login com senha**
-(hash PBKDF2) e **token de acesso**, além do cadastro de **cursos** ligados aos
-eventos e aos alunos. Também foram adicionados uma busca simples de eventos,
-filtro de eventos futuros e um painel-resumo para o usuário.
+Nesta versão o projeto foi organizado em camadas, ganhou **login com senha**,
+hash PBKDF2, JWT, departamento no perfil, filtros administrativos, relatório geral, banco de demonstração
+ampliado e um guia de funcionamento para facilitar a apresentação.
 
 ---
 
-## Como iniciar (jeito mais fácil)
+## Como iniciar rapidamente
+
+A forma recomendada para apresentar o trabalho é usar o inicializador automático.
+Ele prepara tudo sozinho: ambiente virtual, dependências, arquivo `.env`, chave
+JWT, banco SQLite e dados de demonstração.
 
 ### Windows
 
 1. Extraia o ZIP.
 2. Abra a pasta do projeto.
 3. Dê dois cliques em **`executar.bat`**.
-4. Abra <http://127.0.0.1:8000/docs>.
+4. Aguarde a mensagem com o endereço do Swagger.
+5. Abra <http://127.0.0.1:8000/docs>.
 
 ### Linux ou macOS
 
@@ -36,11 +41,18 @@ chmod +x executar.sh
 ./executar.sh
 ```
 
-O `executar.py` cria o ambiente virtual (`.venv`), instala as dependências e, na
-primeira execução, **já cria o banco com os dados de exemplo**. Para parar o
-servidor, pressione `Ctrl+C`. Na primeira vez é preciso estar com internet.
+### Qualquer sistema com Python
 
-### Execução manual 
+```bash
+python executar.py
+```
+
+Na primeira execução é necessário ter internet para instalar as bibliotecas. Nas
+execuções seguintes o ambiente virtual e a configuração local são reaproveitados.
+Para parar o servidor, pressione `Ctrl+C`. A chave JWT é criada automaticamente
+em `.env` e não precisa ser digitada para o projeto funcionar.
+
+### Execução manual (se preferir)
 
 ```bash
 python3 -m venv .venv
@@ -52,6 +64,17 @@ uvicorn main:app --reload
 
 ---
 
+## Checklist para entregar ao professor
+
+- Entregar o ZIP completo, mantendo o arquivo `eventos.db`.
+- Executar `python executar.py` ou abrir `executar.bat`.
+- Abrir `/docs` no navegador.
+- Testar o login com `victor.araujo@faculdade.edu` e `admin123`.
+- Clicar em **Authorize** no Swagger e colar o token recebido.
+- Mostrar `GET /api/v1/dashboard` e `GET /api/v1/relatorios/resumo`.
+- Usar [COMO_FUNCIONA.md](COMO_FUNCIONA.md) como roteiro de apresentação.
+
+---
 ## Estrutura de pastas
 
 ```text
@@ -105,6 +128,7 @@ app/
 └── main.py                   # cria a aplicação FastAPI
 
 main.py                       # atalho para "uvicorn main:app"
+COMO_FUNCIONA.md               # guia completo de uso e arquitetura
 popular_banco.py              # popula o banco pela linha de comando
 backtest_api.py               # testa a API rodando, por HTTP
 ```
@@ -117,11 +141,16 @@ fácil de achar e de corrigir.
 
 ## Autenticação
 
-1. Faça o cadastro em `POST /api/v1/usuarios` (nome, e-mail, senha, perfil e,
-   se quiser, o curso).
+1. Faça o cadastro em `POST /api/v1/usuarios` (nome, e-mail, senha, perfil,
+   departamento e, se quiser, o curso).
 2. Faça login em `POST /api/v1/auth/login` e copie o `access_token`.
-3. No Swagger, clique em **Authorize** e informe o token.
+3. No Swagger, clique em **Authorize**, cole somente o `access_token` (sem o
+   prefixo `Bearer `) e confirme.
 4. `GET /api/v1/auth/me` mostra quem está logado.
+
+Os endpoints estão agrupados por assunto e os principais formulários já vêm com
+payloads de exemplo. Para começar, faça login e use **Try it out** após autorizar a sessão; as consultas
+de cursos e eventos continuam públicas.
 
 Exemplo com `curl`:
 
@@ -134,10 +163,8 @@ TOKEN=$(curl -s -X POST http://127.0.0.1:8000/api/v1/auth/login \
 curl -s http://127.0.0.1:8000/api/v1/eventos -H "Authorization: Bearer $TOKEN"
 ```
 
-> **Observação:** por ser um projeto de estudo, as rotas também aceitam o
-> cabeçalho `X-User-Id: 1` (a forma usada nos primeiros testes da atividade).
-> Em um sistema de verdade isso sairia do código, porque qualquer pessoa poderia
-> "dizer" que é outro usuário.
+> **Segurança:** as rotas protegidas aceitam exclusivamente `Authorization: Bearer <token>`;
+> enviar apenas um identificador de usuário não autentica a requisição e retorna 401.
 
 ---
 
@@ -168,17 +195,14 @@ Criados pelo `popular_banco.py`. Todos já podem ser usados no login:
 | participante | `mariana.teixeira@aluno.faculdade.edu` | `aluno123` |
 | participante | `nathalia.campos@aluno.faculdade.edu` | `aluno123` |
 
-Com o `X-User-Id`, os ids são: **1** = admin, **2 a 6** = professores,
-**7 a 20** = participantes.
 
 ### O que já existe no banco
 
-- **20 usuários** (1 admin, 5 professores e 14 alunos);
-- **4 cursos:** ADS, CC, SI e REDES (cada um com coordenador);
-- **10 eventos:** 4 já finalizados e 6 que ainda vão acontecer;
-- **68 inscrições:** 62 ativas e 6 canceladas;
-- **21 presenças confirmadas** nos eventos que já aconteceram (prontas para
-  emitir certificado).
+- **80 usuários** (1 administrador, 9 professores e 70 participantes);
+- **8 cursos**, cada um com coordenação acadêmica;
+- **22 eventos**, incluindo eventos passados, futuros e institucionais;
+- **135 inscrições**, entre ativas e canceladas;
+- **35 presenças confirmadas** para testar a emissão de certificados.
 
 Os eventos que já terminaram servem justamente para testar presença e
 certificado; os futuros servem para testar inscrição e cancelamento.
@@ -204,8 +228,9 @@ Rotas do sistema (prefixo `/api/v1`):
 | POST | `/auth/login` | Todos |
 | GET | `/auth/me` | Usuário logado |
 | GET | `/dashboard` | Usuário logado (resumo pessoal) |
+| GET | `/relatorios/resumo` | Administrador (indicadores gerais do banco) |
 | POST | `/usuarios` | Todos (é o cadastro) |
-| GET | `/usuarios` | Usuário logado |
+| GET | `/usuarios` | Usuário logado, com filtros `busca`, `role`, `department` e `course_id` |
 | GET | `/usuarios/{id}` | Usuário logado |
 | POST | `/cursos` | Admin / Professor |
 | GET | `/cursos` | Todos |
@@ -250,6 +275,7 @@ Rotas do sistema (prefixo `/api/v1`):
 | RS03 | Senha com no mínimo 6 caracteres, contendo letra e número |
 | RS04 | Participante consulta somente as próprias inscrições |
 | RS05 | O hash da senha nunca aparece nas respostas da API |
+| RS06 | Departamento é armazenado e retornado no perfil autenticado |
 
 ### Regras complementares
 
@@ -269,8 +295,8 @@ Testes automatizados (usam um banco separado, não mexem no `eventos.db`):
 python -m unittest discover -s app/tests -t . -v
 ```
 
-Resultado atual: **39 testes aprovados** (rotas, as 10 regras, permissões,
-senhas, tokens, cursos, busca, dashboard, paginação e privacidade).
+Resultado atual: **43 testes aprovados** (rotas, as 10 regras, permissões,
+senhas, tokens, OpenAPI/Swagger, cursos, busca, dashboard, paginação e privacidade).
 
 Backtest com o servidor rodando (conversa por HTTP, como o Swagger faria):
 
@@ -282,7 +308,7 @@ python executar.py
 python backtest_api.py
 ```
 
-Resultado atual: **71/71 verificações aprovadas** (o log fica em
+Resultado atual: **70/70 verificações aprovadas** (o log fica em
 `backtest_resultado.txt`). O backtest cria dados de teste com um sufixo de
 tempo, então pode ser executado várias vezes seguidas. Para deixar o banco
 limpo de novo:
@@ -293,7 +319,7 @@ python popular_banco.py --recriar
 
 ---
 
-## Problemas
+## Problemas comuns
 
 | Situação | O que fazer |
 |---|---|
